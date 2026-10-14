@@ -1,10 +1,6 @@
 name: Prepare Android Studio development copy
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/sync-from-official.yml
   workflow_dispatch:
 
 permissions:
@@ -23,16 +19,33 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Copy official MyFinc source
+      - name: Check source repository access
         shell: bash
+        env:
+          SOURCE_REPO_TOKEN: ${{ secrets.SOURCE_REPO_TOKEN }}
         run: |
           set -euo pipefail
-          git clone --depth 1 https://github.com/K3NYEL/myfinc.git /tmp/myfinc-official
+          if [ -z "${SOURCE_REPO_TOKEN}" ]; then
+            echo "::error::Missing SOURCE_REPO_TOKEN. Add a fine-grained token with Contents: Read access to K3NYEL/myfinc in this repository's Actions secrets."
+            exit 1
+          fi
+
+      - name: Copy official MyFinc source
+        shell: bash
+        env:
+          SOURCE_REPO_TOKEN: ${{ secrets.SOURCE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          AUTH_HEADER="$(printf 'x-access-token:%s' "$SOURCE_REPO_TOKEN" | base64 -w 0)"
+          git -c http.extraheader="AUTHORIZATION: basic $AUTH_HEADER" clone --depth 1 https://github.com/K3NYEL/myfinc.git /tmp/myfinc-official
+
           rsync -a --delete \
             --exclude='.git/' \
             --exclude='.github/workflows/release.yml' \
+            --exclude='.github/workflows/push-notifications.yml' \
             --exclude='.github/workflows/sync-from-official.yml' \
             /tmp/myfinc-official/ ./
+
           cat > README.md <<'EOF'
           # MyFinc — Android Studio
 
