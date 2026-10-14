@@ -15,29 +15,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout development repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
-      - name: Check source repository access
-        shell: bash
-        env:
-          SOURCE_REPO_TOKEN: ${{ secrets.SOURCE_REPO_TOKEN }}
-        run: |
-          set -euo pipefail
-          if [ -z "${SOURCE_REPO_TOKEN}" ]; then
-            echo "::error::Missing SOURCE_REPO_TOKEN. Add a fine-grained token with Contents: Read access to K3NYEL/myfinc in this repository's Actions secrets."
-            exit 1
-          fi
-
       - name: Copy official MyFinc source
         shell: bash
-        env:
-          SOURCE_REPO_TOKEN: ${{ secrets.SOURCE_REPO_TOKEN }}
         run: |
           set -euo pipefail
-          AUTH_HEADER="$(printf 'x-access-token:%s' "$SOURCE_REPO_TOKEN" | base64 -w 0)"
-          git -c http.extraheader="AUTHORIZATION: basic $AUTH_HEADER" clone --depth 1 https://github.com/K3NYEL/myfinc.git /tmp/myfinc-official
+          git clone --depth 1 https://github.com/K3NYEL/myfinc.git /tmp/myfinc-official
 
           rsync -a --delete \
             --exclude='.git/' \
