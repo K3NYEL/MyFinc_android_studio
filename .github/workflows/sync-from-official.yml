@@ -27,9 +27,7 @@ jobs:
 
           rsync -a --delete \
             --exclude='.git/' \
-            --exclude='.github/workflows/release.yml' \
-            --exclude='.github/workflows/push-notifications.yml' \
-            --exclude='.github/workflows/sync-from-official.yml' \
+            --exclude='.github/workflows/' \
             /tmp/myfinc-official/ ./
 
           cat > README.md <<'EOF'
