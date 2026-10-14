@@ -112,7 +112,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         title: Text(_tr(context, 'Copia automática', 'Automatic backup')),
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(24, 0, 24, 12),
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
             child: Text(
               _tr(context, 'MyFinc guardará una copia local cuando inicies sesión y haya pasado el intervalo elegido. No se ejecuta en segundo plano con la app cerrada. Los archivos JSON no están cifrados y contienen datos financieros legibles; guárdalos en un lugar privado.', 'MyFinc will save a local backup at sign-in once the selected interval has passed. It does not run in the background while the app is closed. JSON files are not encrypted and contain readable financial data; keep them somewhere private.'),
             ),
@@ -181,7 +181,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   controller: controller,
                   autofocus: true,
                   onChanged: (_) => setDialogState(() {}),
-                  decoration: InputDecoration(labelText: _tr(context, 'Confirmación', 'Confirmation'), border: OutlineInputBorder()),
+                  decoration: InputDecoration(labelText: _tr(context, 'Confirmación', 'Confirmation'), border: const OutlineInputBorder()),
                 ),
               ],
             ),
@@ -409,6 +409,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       Navigator.of(context, rootNavigator: true).pop();
       loadingOpen = false;
       await loadingRoute;
+      if (!mounted) return;
       await _showUpdateMessage(
         title: _tr(context, 'Copia guardada', 'Backup saved'),
         message: _tr(context, 'La copia se guardó localmente.\n\nRuta:\n${file.path}\n\nImportante: el archivo JSON no está cifrado y contiene datos financieros legibles. Guárdalo en un lugar privado. No contiene contraseñas ni hashes de acceso.', 'The backup was saved locally.\n\nPath:\n${file.path}\n\nImportant: the JSON file is not encrypted and contains readable financial data. Keep it somewhere private. It does not contain passwords or sign-in hashes.'),
@@ -421,6 +422,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         loadingOpen = false;
         if (loadingRoute != null) await loadingRoute;
       }
+      if (!mounted) return;
       await _showUpdateMessage(
         title: _tr(context, 'No se pudo crear la copia', 'Could not create backup'),
         message: error is AppException ? error.message : _tr(context, 'Ocurrió un error al generar o guardar la copia de seguridad.', 'An error occurred while creating or saving the backup.'),
@@ -916,7 +918,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     onChanged: (_) => setDialogState(() {}),
                     decoration: InputDecoration(
                       labelText: _tr(context, 'Confirmación', 'Confirmation'),
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                 ],
@@ -1255,13 +1257,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 if (!mounted) return;
                 if (!granted) {
                   await NotificationPermissionService.openSettings();
-                } else {
-                  await _showUpdateMessage(
+                  return;
+                }
+                if (!mounted) return;
+                await _showUpdateMessage(
                     title: _tr(context, 'Notificaciones permitidas', 'Notifications allowed'),
                     message: _tr(context, 'El permiso del dispositivo está activo. Los avisos de versión se consultan dentro del centro de notificaciones de MyFinc.', 'Device notification permission is enabled. Version announcements are available in the MyFinc notification center.'),
                     icon: Icons.check_circle_outline_rounded,
-                  );
-                }
+                );
               },
             ),
             _SettingsTile(
@@ -1426,12 +1429,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(20, 8, 20, 12),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'Tema',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                     ),
@@ -1481,7 +1484,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
 
 class _OperationLoadingDialog extends StatelessWidget {
-  _OperationLoadingDialog({
+  const _OperationLoadingDialog({
     required this.title,
     required this.message,
   });
@@ -1549,7 +1552,7 @@ class _CategoryManagerDialogState
           decoration: InputDecoration(
             labelText: _tr(context, 'Nombre', 'Name'),
             hintText: _tr(context, 'Ej. Salario o Transporte', 'e.g. Salary or Transport'),
-            border: OutlineInputBorder(),
+            border: const OutlineInputBorder(),
           ),
           onSubmitted: (value) => Navigator.pop(dialogContext, value.trim()),
         ),
@@ -1630,8 +1633,8 @@ class _CategoryManagerDialogState
           children: [
             SegmentedButton<String>(
               segments: [
-                ButtonSegment(value: 'expense', label: Text(_tr(context, 'Gastos', 'Expenses')), icon: Icon(Icons.south_west_rounded)),
-                ButtonSegment(value: 'income', label: Text(_tr(context, 'Ingresos', 'Income')), icon: Icon(Icons.north_east_rounded)),
+                ButtonSegment(value: 'expense', label: Text(_tr(context, 'Gastos', 'Expenses')), icon: const Icon(Icons.south_west_rounded)),
+                ButtonSegment(value: 'income', label: Text(_tr(context, 'Ingresos', 'Income')), icon: const Icon(Icons.north_east_rounded)),
               ],
               selected: {_type},
               onSelectionChanged: _busy ? null : (value) => setState(() => _type = value.first),
@@ -1641,17 +1644,17 @@ class _CategoryManagerDialogState
               child: categories.when(
                 loading: () => Center(
                   child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: CircularProgressIndicator(),
+                    padding: const EdgeInsets.all(24),
+                    child: const CircularProgressIndicator(),
                   ),
                 ),
                 error: (_, __) => Padding(
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   child: Text(_tr(context, 'No se pudieron cargar las categorías.', 'Could not load categories.')),
                 ),
                 data: (items) => items.isEmpty
                     ? Padding(
-                        padding: EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(20),
                         child: Text(_tr(context, 'Todavía no hay categorías. Agrega la primera.', 'There are no categories yet. Add the first one.')),
                       )
                     : ListView(

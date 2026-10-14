@@ -92,6 +92,7 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
     if (code == _displayCurrency) return;
     if (convertDisplayAmount(1, from: 'DOP', to: code) == null) {
       final refreshed = await refreshDisplayExchangeRates();
+      if (!mounted) return;
       if (!refreshed && convertDisplayAmount(1, from: 'DOP', to: code) == null) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -108,13 +109,14 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
     setState(() => _displayCurrency = code);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_tr(context, 'Moneda de visualización cambiada a ${currencyLabel(code)}', 'Display currency changed to ${code}')),
+        content: Text(_tr(context, 'Moneda de visualización cambiada a ${currencyLabel(code)}', 'Display currency changed to $code')),
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
   Future<void> _loadRates() async {
+    final isEnglish = Localizations.localeOf(context).languageCode == 'en';
     setState(() {
       _loading = true;
       _error = null;
@@ -123,15 +125,15 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
       final uri = Uri.https('open.er-api.com', '/v6/latest/$_from');
       final response = await http.get(uri).timeout(const Duration(seconds: 15));
       if (response.statusCode != 200) {
-        throw Exception(_tr(context, 'El servicio respondió con código ${response.statusCode}.', 'The service returned status code ${response.statusCode}.'));
+        throw Exception(isEnglish ? 'The service returned status code ${response.statusCode}.' : 'El servicio respondió con código ${response.statusCode}.');
       }
       final decoded = jsonDecode(response.body);
       if (decoded is! Map<String, dynamic> || decoded['result'] != 'success') {
-        throw Exception(_tr(context, 'El proveedor no devolvió tasas válidas.', 'The provider did not return valid exchange rates.'));
+        throw Exception(isEnglish ? 'The provider did not return valid exchange rates.' : 'El proveedor no devolvió tasas válidas.');
       }
       final rates = decoded['rates'];
       if (rates is! Map<String, dynamic>) {
-        throw Exception(_tr(context, 'No se encontraron tasas de conversión.', 'No conversion rates were found.'));
+        throw Exception(isEnglish ? 'No conversion rates were found.' : 'No se encontraron tasas de conversión.');
       }
       if (!mounted) return;
       setState(() {
@@ -147,7 +149,7 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
     } catch (_) {
       if (mounted) {
         setState(() {
-          _error = _tr(context, 'No se pudieron actualizar las tasas. Comprueba tu conexión e inténtalo de nuevo.', 'Could not update rates. Check your connection and try again.');
+          _error = isEnglish ? 'Could not update rates. Check your connection and try again.' : 'No se pudieron actualizar las tasas. Comprueba tu conexión e inténtalo de nuevo.';
         });
       }
     } finally {
@@ -170,8 +172,8 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
           shrinkWrap: true,
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(20, 8, 20, 12),
-              child: Text(_tr(context, 'Seleccionar moneda', 'Select currency'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+              child: Text(_tr(context, 'Seleccionar moneda', 'Select currency'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
             ),
             for (final entry in _currencies.entries)
               ListTile(
