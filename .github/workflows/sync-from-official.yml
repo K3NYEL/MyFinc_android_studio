@@ -1,0 +1,67 @@
+name: Prepare Android Studio development copy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/sync-from-official.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-from-official
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout development repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Copy official MyFinc source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/K3NYEL/myfinc.git /tmp/myfinc-official
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.github/workflows/release.yml' \
+            --exclude='.github/workflows/sync-from-official.yml' \
+            /tmp/myfinc-official/ ./
+          cat > README.md <<'EOF'
+          # MyFinc — Android Studio
+
+          Copia de desarrollo de MyFinc para trabajar con Flutter desde Android Studio.
+
+          - Repositorio oficial (versiones, etiquetas, releases y APK): https://github.com/K3NYEL/myfinc
+          - Este repositorio se utiliza para desarrollar y probar cambios.
+          - No publiques versiones oficiales ni APK desde este repositorio.
+
+          ## Empezar
+
+          ```bash
+          flutter pub get
+          flutter analyze
+          flutter test
+          flutter run
+          ```
+          EOF
+
+      - name: Commit development copy
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "Copy official MyFinc source for Android Studio development"
+          git push
