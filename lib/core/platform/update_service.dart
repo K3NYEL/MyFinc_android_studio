@@ -18,7 +18,7 @@ class UpdateService {
       GithubReleaseRepository();
 
   static Future<UpdateInfo?> checkForUpdate() async {
-    if (kIsWeb) return null;
+    if (kIsWeb || Platform.isWindows) return null;
 
     try {
       final release = await _releaseRepository.fetchLatestRelease();

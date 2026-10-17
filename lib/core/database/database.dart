@@ -1,4 +1,8 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'migrations/migration_002.dart';
 import 'migrations/migration_003.dart';
@@ -18,7 +22,16 @@ class AppDatabase {
   }
 
   static Future<Database> _open() async {
-    final path = join(await getDatabasesPath(), 'myfinc.db');
+    final String databasePath;
+    if (!kIsWeb && Platform.isWindows) {
+      final supportDirectory = await getApplicationSupportDirectory();
+      final myFincDirectory = Directory(join(supportDirectory.path, 'MyFinc'));
+      await myFincDirectory.create(recursive: true);
+      databasePath = myFincDirectory.path;
+    } else {
+      databasePath = await getDatabasesPath();
+    }
+    final path = join(databasePath, 'myfinc.db');
     return openDatabase(
       path,
       version: 8,
