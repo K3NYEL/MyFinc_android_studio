@@ -28,7 +28,7 @@ Future<void> main() async {
       );
       firebaseInitialized = true;
     } catch (error) {
-      // Push notifications must not prevent the offline-first app from opening.
+      // Push notifications must not preven`xt the offline-first app from opening.
       debugPrint('MyFinc Firebase initialization failed: $error');
     }
   }
