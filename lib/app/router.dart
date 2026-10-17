@@ -197,10 +197,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Future<void> _initialize() async {
     final stopwatch = Stopwatch()..start();
 
+    final updateCheck = _checkForUpdates();
+
     try {
       debugPrint('[MYFINC] Iniciando aplicación...');
 
-      final updateCheck = _checkForUpdates();
       await AppDatabase.instance;
 
       debugPrint('[MYFINC] Base de datos comprobada.');
@@ -209,8 +210,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       if (remaining > Duration.zero) {
         await Future<void>.delayed(remaining);
       }
-
-      if (!mounted) return;
 
       if (!mounted) return;
 
