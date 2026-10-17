@@ -26,12 +26,15 @@ import 'shell/app_shell.dart';
 const _pageDuration = Duration(milliseconds: 260);
 const _minimumSplashDuration = Duration(milliseconds: 900);
 
+final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = RouterRefreshNotifier(ref);
 
   ref.onDispose(refreshNotifier.dispose);
 
   return GoRouter(
+    navigatorKey: _rootNavigatorKey,
     initialLocation: '/splash',
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
@@ -148,6 +151,27 @@ CustomTransitionPage<void> _page(
   );
 }
 
+Future<UpdateInfo?> _checkForUpdates() async {
+  try {
+    return await UpdateService.checkForUpdate();
+  } catch (error, stackTrace) {
+    debugPrint('[MYFINC] No se pudo comprobar si hay actualizaciones: $error');
+    debugPrint('$stackTrace');
+    return null;
+  }
+}
+
+Future<void> _showUpdateWhenAvailable(
+  Future<UpdateInfo?> updateCheck,
+) async {
+  final latestUpdate = await updateCheck;
+  final context = _rootNavigatorKey.currentContext;
+  if (latestUpdate == null || context == null) return;
+
+  debugPrint('[MYFINC] Nueva versión disponible.');
+  await showUpdateDialog(context, latestUpdate);
+}
+
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
@@ -173,17 +197,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Future<void> _initialize() async {
     final stopwatch = Stopwatch()..start();
 
+    final updateCheck = _checkForUpdates();
+
     try {
       debugPrint('[MYFINC] Iniciando aplicación...');
 
-      final results = await Future.wait<dynamic>([
-        AppDatabase.instance,
-        UpdateService.checkForUpdate(),
-      ]);
+      await AppDatabase.instance;
 
-      final latestUpdate = results[1] as UpdateInfo?;
-
-      debugPrint('[MYFINC] Base de datos y actualización comprobadas.');
+      debugPrint('[MYFINC] Base de datos comprobada.');
 
       final remaining = _minimumSplashDuration - stopwatch.elapsed;
       if (remaining > Duration.zero) {
@@ -192,14 +213,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
       if (!mounted) return;
 
-      if (latestUpdate != null) {
-        debugPrint('[MYFINC] Nueva versión disponible.');
-        await showUpdateDialog(context, latestUpdate);
-      }
-
-      if (!mounted) return;
-
-      _redirectTimer = Timer(Duration.zero, () => context.go('/auth'));
+      _redirectTimer = Timer(Duration.zero, () {
+        context.go('/auth');
+        unawaited(_showUpdateWhenAvailable(updateCheck));
+      });
     } catch (e, stackTrace) {
       debugPrint('[MYFINC] ERROR DURANTE INICIALIZACIÓN: $e');
       debugPrint('$stackTrace');
@@ -213,7 +230,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
       if (!mounted) return;
 
-      _redirectTimer = Timer(Duration.zero, () => context.go('/auth'));
+      _redirectTimer = Timer(Duration.zero, () {
+        context.go('/auth');
+        unawaited(_showUpdateWhenAvailable(updateCheck));
+      });
     }
   }
 
