@@ -1,0 +1,41 @@
+name: Windows build
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/windows-build.yml"
+      - ".metadata"
+      - "lib/**"
+      - "windows/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+  push:
+    branches: [main, feat/windows-desktop-support]
+    paths:
+      - ".github/workflows/windows-build.yml"
+      - ".metadata"
+      - "lib/**"
+      - "windows/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build windows --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: myfinc-windows-x64
+          path: build/windows/**/runner/Release/
+          if-no-files-found: error

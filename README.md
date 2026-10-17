@@ -14,3 +14,21 @@ flutter analyze
 flutter test
 flutter run
 ```
+## Aplicación de escritorio para Windows
+
+Para compilar se requiere Windows de 64 bits, Flutter, Visual Studio 2022 con la carga **Desarrollo para el escritorio con C++**, el SDK de Windows y las bibliotecas ATL.
+
+Desde la raíz del proyecto:
+
+```powershell
+flutter pub get
+flutter run -d windows
+```
+
+Para generar la versión de distribución:
+
+```powershell
+flutter build windows --release
+```
+
+Distribuye la carpeta de salida completa, incluidos el ejecutable y sus DLL. La base local se guarda en el directorio de datos de MyFinc del usuario.
