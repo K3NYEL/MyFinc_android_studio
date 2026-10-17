@@ -15,7 +15,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeCurrency();
 
-  if (!kIsWeb && Platform.isLinux) {
+  if (!kIsWeb && (Platform.isLinux || Platform.isWindows)) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
